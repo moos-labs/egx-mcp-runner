@@ -103,3 +103,34 @@ stdio to start the server, then:
 Note: `get_last_price` fetches through egxpy → tvDatafeed's anonymous
 ("nologin") TradingView feed, so the value is whatever that feed returns
 at run time.
+
+## Pilot run (2026-11-10)
+
+Run: https://github.com/moos-labs/egx-mcp-runner/actions/runs/42826461150
+— conclusion **success** (all steps green, `results` artifact uploaded).
+
+- `list_tools` returned **9 tools**: `get_current_time`,
+  `get_timeperiod_date`, `get_last_price`, `get_live_price`,
+  `get_price_change`, `get_current_gold_price`, `get_intraday_readings`,
+  `get_risers_overtime`, `get_riser_intraday` (full schemas in the
+  artifact's `tools.json`).
+- `get_last_price` was called with `{"company_ticker": "POUL"}`. The MCP
+  transport, server startup and tool dispatch all worked, but the tool
+  itself returned an error (verbatim, in the artifact's `probe.md` /
+  `probe_result.json`):
+
+  ```json
+  {"type": "text", "text": "Error executing tool get_last_price: 'NoneType' object is not subscriptable"}
+  ```
+  with `isError: true`.
+
+- Cause, from the run's own log: tvDatafeed's anonymous feed logged
+  `you are using nologin method`, then `Connection timed out` and
+  `no data, please check the exchange and symbol` — i.e.
+  `TvDatafeedLive.get_hist` returned `None` for POUL:EGX from the
+  runner's egress, and egxpy's caller in the server then crashed on
+  `response['close']`. The same timeout pattern was reproduced from a
+  second, unrelated egress during development. So no POUL price was
+  obtained: the server's anonymous TradingView data source did not
+  deliver data — this is an upstream data-source failure, not a runner
+  or MCP configuration failure.
