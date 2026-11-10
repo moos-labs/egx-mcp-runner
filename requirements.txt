@@ -1,0 +1,17 @@
+# Client + server dependencies for probing Patrickboules/EGX-MCP.
+# The server's own pyproject.toml requires Python >=3.14 and pins egxpy to
+# a git source that no longer resolves (https://github.com/egxlytics/egxpy.git
+# returns HTTP 404; egxpy is not on PyPI), so its dependencies are installed
+# directly here and the server is run from a plain clone (server_src/).
+# Pinned to the 1.x line (author's uv.lock: mcp 1.26.0). mcp 2.x removed
+# mcp.server.fastmcp, which the server imports, so >=2 cannot run it.
+mcp[cli]>=1.26.0,<2
+httpx>=0.28.1
+beautifulsoup4>=0.0.2
+requests>=2.31
+# egxpy 1.1.0 — live mirror of the library the server is built on
+# (egxpy/download.py: get_OHLCV_data, get_EGXdata, get_EGX_intraday_data).
+# Its download.py also does `import streamlit`, which its setup.py does not
+# declare — hence streamlit below.
+git+https://github.com/mmabas77/egxpy.git
+streamlit
