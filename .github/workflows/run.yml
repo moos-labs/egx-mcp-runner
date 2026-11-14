@@ -2,6 +2,11 @@ name: Run
 
 on:
   workflow_dispatch:
+    inputs:
+      commands:
+        description: 'Borsagator composed commands (overrides vars.COMMANDS)'
+        required: false
+        type: string
 
 jobs:
   run:
@@ -17,7 +22,7 @@ jobs:
           pip install -r requirements.txt
           git clone --depth 1 https://github.com/Patrickboules/EGX-MCP.git server_src
       - name: Run commands
-        run: ${{ vars.COMMANDS }}
+        run: ${{ inputs.commands || vars.COMMANDS }}
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
